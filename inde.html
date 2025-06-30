@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futebol 2°D - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f172a',
+                        secondary: '#1e293b',
+                        accent: '#38bdf8',
+                        highlight: '#22d3ee',
+                        background: '#f1f5f9'
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .sidebar-btn {
+            transition: all 0.3s ease;
+            transform-origin: left center;
+        }
+        
+        .sidebar-btn:hover {
+            transform: translateX(10px);
+            background: rgba(56, 189, 248, 0.1);
+        }
+        
+        .sidebar-btn.active {
+            transform: translateX(15px);
+            background: rgba(56, 189, 248, 0.15);
+            box-shadow: -6px 0 0 0 #38bdf8;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 60px;
+            height: 60px;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .rule-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(56, 189, 248, 0.1);
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 12px;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #38bdf8, #22d3ee);
+            border-radius: 10px;
+        }
+        
+        .badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+            }
+        }
+        
+        .soccer-ball {
+            animation: rotate 8s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .mobile-menu {
+            transform: translateY(-100%);
+            transition: transform 0.4s ease;
+        }
+        
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-background text-primary">
+
+<!-- Mobile Header -->
+<header class="bg-primary text-white px-4 py-4 flex justify-between items-center fixed w-full z-50 shadow-lg md:hidden">
+    <div class="flex items-center space-x-2">
+        <div class="bg-accent w-8 h-8 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-futbol text-white"></i>
+        </div>
+        <span class="font-bold text-xl">FuturoFutebol</span>
+    </div>
+    <button id="menu-toggle" class="text-accent focus:outline-none">
+        <i class="fa-solid fa-bars text-xl"></i>
+    </button>
+</header>
+
+<!-- Mobile Menu -->
+<div id="mobile-menu" class="mobile-menu fixed top-16 left-0 right-0 bg-secondary z-40 shadow-xl px-6 py-4 md:hidden">
+    <ul class="space-y-3">
+        <li>
+            <a href="#futebol" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                <i class="fa-solid fa-futbol text-accent mr-3"></i>
+                <span>Futebol</span>
+            </a>
+        </li>
+        <li>
+            <a href="#como-funciona" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                <i class="fa-solid fa-play-circle text-accent mr-3"></i>
+                <span>Como Funciona</span>
+            </a>
+        </li>
+        <li>
+            <a href="#regras" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                <i class="fa-solid fa-clipboard-list text-accent mr-3"></i>
+                <span>Regras</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="flex min-h-screen max-[768px]:pt-20">
+    <!-- Sidebar -->
+    <aside class="hidden md:block bg-primary text-white w-64 min-h-screen fixed">
+        <div class="flex items-center justify-center py-8">
+            <div class="bg-accent w-10 h-10 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-futbol text-white"></i>
+            </div>
+            <span class="font-bold text-xl ml-3">Futebol 2°D</span>
+        </div>
+
+        <div class="px-6 py-8">
+            <ul class="space-y-3">
+                <li>
+                    <a href="#futebol" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                        <i class="fa-solid fa-futbol text-accent mr-3"></i>
+                        <span>Futebol</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#como-funciona" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                        <i class="fa-solid fa-play-circle text-accent mr-3"></i>
+                        <span>Como Funciona</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#regras" class="flex items-center py-3 px-4 w-full rounded-xl sidebar-btn text-white transition-all">
+                        <i class="fa-solid fa-clipboard-list text-accent mr-3"></i>
+                        <span>Regras</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
+            <div class="w-40 h-40 flex items-center justify-center mb-4 soccer-ball">
+                <i class="fa-solid fa-futbol text-accent text-6xl opacity-20"></i>
+            </div>
+            <span class="text-sm text-gray-400">© 2025 Futebol 2°D  <br>Grupo: Isadora Maria, Isabella Ribeiro, Julio Cesar, Luan Pertson, Tiago Sales, Emanuell Martins</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-[768px]:ml-64">
+        <!-- Header -->
+        <div class="bg-white min-[768px]:hidden py-4 px-6 shadow">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mr-3">
+                    <i class="fa-solid fa-futbol text-accent"></i>
+                </div>
+                <h1 class="text-xl font-bold">Dashboard Futebol</h1>
+            </div>
+        </div>
+        
+        <!-- Content Container -->
+        <div class="px-4 sm:px-6 py-8">
+            <!-- Welcome Section -->
+            <div class="bg-gradient-to-r from-accent to-highlight rounded-2xl p-6 md:p-8 text-white shadow-lg mb-8 md:mb-12">
+                <div class="flex flex-col md:flex-row md:items-center">
+                    <div class="flex-1">
+                        <h1 class="text-2xl md:text-3xl font-bold mb-2">Bem-vindo ao Futebol Brasileiro!</h1>
+                        <p class="opacity-90 md:max-w-2xl mb-4">Aprenda sobre o esporte mais popular do Brasil com o grupo formado pela sala do 2°D.</p>
+                    </div>
+                    <div>
+                        <div class="w-20 h-20 mx-auto md:mx-0 bg-white/20 rounded-full flex items-center justify-center soccer-ball">
+                            <i class="fa-solid fa-futbol text-white text-4xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+                <div class="stat-card bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center">
+                        <div class="rule-icon bg-accent/10">
+                            <i class="fa-solid fa-users text-accent text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold">42 milhões</div>
+                            <div class="text-sm opacity-70">Jogadores no Brasil</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center">
+                        <div class="rule-icon bg-accent/10">
+                            <i class="fa-solid fa-trophy text-accent text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold">5 títulos</div>
+                            <div class="text-sm opacity-70">Copas do Mundo</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center">
+                        <div class="rule-icon bg-accent/10">
+                            <i class="fa-solid fa-calendar-days text-accent text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold">120+ anos</div>
+                            <div class="text-sm opacity-70">História do Futebol Brasileiro</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Futebol Section -->
+            <section id="futebol" class="bg-white rounded-2xl shadow-lg p-6 mb-12 relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                    <i class="fa-solid fa-futbol text-accent text-[20rem]"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold section-title">Futebol Brasileiro</h2>
+                        <span class="badge bg-accent/10 text-accent rounded-full px-3 py-1 text-sm font-bold">Paixão Nacional</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mbFaça um dashboard de futebol com um menu lateral animado com três botões: Futebol, Como Funciona e Regras. Cada botão leva a uma seção com conteúdo explicativo. Design moderno e futurista, totalmente responsivo com TailwindCSS.Minha página não precisa do cabeçalho mobile, podendo começar direto com o sidebar para desktop e já ter uma opção para mobile.
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-secondary">Coração da Cultura Brasileira</h3>
+                        <p class="text-gray-700 mb-4">
+                            O futebol no Brasil transcende o status de esporte - é uma paixão nacional que permeia todas as camadas da nossa sociedade. Introduzido em 1894 por Charles Miller, o futebol rapidamente se tornou o esporte mais popular do país.
+                        </p>
+                        <p class="text-gray-700 mb-4">
+                            De Pelé a Neymar, o Brasil é mundialmente conhecido por sua técnica, arte e "gingado" característicos. A Seleção Brasileira, conhecida como "Canarinho", é a única a conquistar cinco Copas do Mundo (1958, 1962, 1970, 1994 e 2002) e tem produziu alguns dos melhores jogadores da história do esporte.
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="bg-secondary rounded-xl overflow-hidden mb-4 max-w-xs">
+                            <div class="p-4 text-white font-bold text-center">Campo de Futebol Brasileiro</div>
+                            <div class="bg-green-500 p-8 relative">
+                                <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-white"></div>
+                                <div class="absolute top-0 bottom-0 left-0 w-1/2 border-r border-white"></div>
+                                <div class="absolute left-1/4 top-1/4 w-1/2 h-1/2 border border-white rounded-full"></div>
+                                <div class="absolute top-1/2 left-0 w-4 h-16 bg-white"></div>
+                                <div class="absolute top-1/2 right-0 w-4 h-16 bg-white"></div>
+                                <div class="absolute top-1/2 right-1/4 w-8 h-16 border border-white rounded-lg"></div>
+                                <div class="absolute top-1/2 left-1/4 w-8 h-16 border border-white rounded-lg"></div>
+                            </div>
+                        </div>
+                        <p class="bg-accent/10 text-accent rounded-lg px-4 py-2 text-sm text-center">"O Brasil respira futebol 24 horas por dia" - Pelé</p>
+                    </div>
+                </div>
+                
+                <div class="bg-accent/5 rounded-xl p-4 border border-accent/10">
+                    <h3 class="text-lg font-semibold mb-3">Por que o futebol brasileiro é único?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <i class="fa-solid fa-music text-accent text-xl mb-2"></i>
+                            <h4 class="font-semibold mb-1">Estilo Samba</h4>
+                            <p class="text-sm text-gray-600">Ritmo, fluidez e criatividade que se assemelham à dança.</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <i class="fa-solid fa-person-running text-accent text-xl mb-2"></i>
+                            <h4 class="font-semibold mb-1">Técnica Excepcional</h4>
+                            <p class="text-sm text-gray-600">Domínio de bola, dribles e jogadas improvisadas.</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <i class="fa-solid fa-heart text-accent text-xl mb-2"></i>
+                            <h4 class="font-semibold mb-1">Paixão Coletiva</h4>
+                            <p class="text-sm text-gray-600">União de todas as classes sociais em torno do esporte.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Como Funciona Section -->
+            <section id="como-funciona" class="bg-white rounded-2xl shadow-lg p-6 mb-12 relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                    <i class="fa-solid fa-play-circle text-accent text-[20rem]"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold section-title">Como Funciona</h2>
+                        <span class="badge bg-accent/10 text-accent rounded-full px-3 py-1 text-sm font-bold">Jogo Simples</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="order-2 md:order-1">
+                            <h3 class="text-xl font-semibold mb-3 text-secondary">O Esporte do Povo</h3>
+                            <p class="text-gray-700 mb-4">
+                                Para começar a jogar futebol, você só precisa de uma bola e espaço! Isso explica a popularidade do esporte nas ruas, praças, praias e campos improvisados em todo o Brasil.
+                            </p>
+                            <p class="text-gray-700 mb-4">
+                                Uma partida formal envolve duas equipes de 11 jogadores cada, mas nas ruas brasileiras, qualquer número pode participar - desde o tradicional "pelada" até variações como futebol society (7 jogadores) e futevôlei.
+                            </p>
+                        </div>
+                        <div class="order-1 md:order-2 flex justify-center">
+                            <div class="bg-secondary rounded-xl p-6 max-w-xs">
+                                <div class="flex items-center mb-4 text-white">
+                                    <i class="fa-solid fa-road mr-3"></i>
+                                    <h3 class="font-bold">Futebol de Rua</h3>
+                                </div>
+                                <div class="flex justify-center mb-4">
+                                    <div class="bg-gray-200 border-2 border-dashed rounded-xl w-48 h-32 flex items-center justify-center">
+                                        <i class="fas fa-road text-gray-500 text-3xl"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-white opacity-80 text-center">
+                                    Tradicional pelada brasileira em qualquer espaço disponível
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4 text-secondary text-center">Fluxo de uma Partida</h3>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="relative max-w-2xl w-full">
+                            <!-- Timeline -->
+                            <div class="flex justify-between items-center mb-12 relative">
+                                <div class="flex flex-col items-center w-1/5">
+                                    <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center mb-2 z-10 shrink-0">
+                                        <i class="text-white fa-solid fa-1"></i>
+                                    </div>
+                                    <div class="text-sm text-center">Escolha dos times</div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center w-1/5">
+                                    <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center mb-2 z-10 shrink-0">
+                                        <i class="text-white fa-solid fa-2"></i>
+                                    </div>
+                                    <div class="text-sm text-center">Aquecimento</div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center w-1/5">
+                                    <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center mb-2 z-10 shrink-0">
+                                        <i class="text-white fa-solid fa-3"></i>
+                                    </div>
+                                    <div class="text-sm text-center">Primeiro tempo (45 min)</div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center w-1/5">
+                                    <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center mb-2 z-10 shrink-0">
+                                        <i class="text-white fa-solid fa-4"></i>
+                                    </div>
+                                    <div class="text-sm text-center">Intervalo (15 min)</div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center w-1/5">
+                                    <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center mb-2 z-10 shrink-0">
+                                        <i class="text-white fa-solid fa-5"></i>
+                                    </div>
+                                    <div class="text-sm text-center">Segundo tempo (45 min)</div>
+                                </div>
+                                
+                                <div class="absolute h-1 bg-gray-300 top-5 left-0 right-0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-secondary/5 rounded-xl p-4 md:p-6 border-l-4 border-secondary mt-6">
+                        <div class="flex items-start">
+                            <i class="fa-solid fa-star text-secondary mr-4 mt-1"></i>
+                            <div>
+                                <p class="text-secondary font-semibold mb-2">Objetivo do Jogo</p>
+                                <p class="text-gray-700">Marcar mais gols que o adversário colocando a bola dentro do gol usando qualquer parte do corpo exceto as mãos/braços.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Regras Section -->
+            <section id="regras" class="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                    <i class="fa-solid fa-clipboard-list text-accent text-[20rem]"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold section-title">Regras do Futebol</h2>
+                        <span class="badge bg-accent/10 text-accent rounded-full px-3 py-1 text-sm font-bold">Fundamentos</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-users text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Formação das Equipes</h3>
+                                    <p class="text-sm text-gray-600">Cada equipe tem 11 jogadores (1 goleiro + 10 jogadores de linha).</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-hourglass-half text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Duração da Partida</h3>
+                                    <p class="text-sm text-gray-600">90 minutos divididos em dois tempos de 45 min com intervalo de 15 min.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-hand text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Impedimento</h3>
+                                    <p class="text-sm text-gray-600">Quando um atacante recebe a bola e está mais avançado que o penúltimo defensor adversário.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-triangle-exclamation text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Faltas</h3>
+                                    <p class="text-sm text-gray-600">Cartão amarelo para advertência, cartão vermelho para expulsão. Vermelho pode ser direto.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-location-dot text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Pênalti</h3>
+                                    <p class="text-sm text-gray-600">Marcado quando falta é cometida dentro da grande área. Cobrança direta do ponto penal.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-card bg-background border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-start">
+                                <div class="rule-icon">
+                                    <i class="fa-solid fa-lines-leaning text-accent text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Escanteio</h3>
+                                    <p class="text-sm text-gray-600">Quando a bola ultrapassa a linha de fundo após tocar em defensor. Ataque recoloca em jogo pelo canto.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 mb-4">
+                        <h3 class="text-xl font-semibold mb-4 text-secondary">Cartões</h3>
+                        <div class="grid grid-cols-1 md:grid-cids-2 gap-4">
+                            <div class="flex items-center bg-yellow-50 border border-yellow-100 rounded-lg p-4">
+                                <div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center mr-4 shrink-0">
+                                    <i class="fa-solid fa-square text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Cartão Amarelo</h4>
+                                    <p class="text-sm">Advertência por falta grave. Dois amarelos equivalem a um vermelho.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center bg-red-50 border border-red-100 rounded-lg p-4">
+                                <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center mr-4 shrink-0">
+                                    <i class="fa-solid fa-square text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">Cartão Vermelho</h4>
+                                    <p class="text-sm">Expulsão imediata por falta muito grave ou violência.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="py-8 px-4 text-center text-sm text-gray-500 mt-8">
+            <p>© 2025 Tiago Sales - Todos os direitos reservados</p>
+            <p class="mt-2">O esporte de uma nação apaixonada</p>
+        </footer>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        menuToggle.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!mobileMenu.contains(event.target) && !menuToggle.contains(event.target) && mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+            }
+        });
+        
+        // Active menu item scrolling
+        const sections = document.querySelectorAll('section');
+        const sidebarLinks = document.querySelectorAll('aside a, #mobile-menu a');
+        
+        window.addEventListener('scroll', function() {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - sectionHeight/3)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
